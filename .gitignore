@@ -1,0 +1,16 @@
+# Nix
+result
+result-*
+
+# Haskell Stack
+.stack-work/
+
+# Haskell Cabal (sandbox)
+.cabal-sandbox/
+cabal.sandbox.config
+dist/
+
+# Haskell Cabal (newtyle)
+.ghc.environment.*
+cabal.project.local
+dist-newstyle/

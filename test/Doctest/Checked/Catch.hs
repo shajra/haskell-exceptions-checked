@@ -1,0 +1,130 @@
+module Doctest.Checked.Catch where
+
+
+-- $setup
+-- >>> :set -XTypeApplications
+-- >>> :set -XFlexibleContexts
+-- >>> :set -XScopedTypeVariables
+-- >>> :set -XDataKinds
+--
+-- >>> import qualified Control.Exception.Checked as C
+--
+-- >>> :{
+-- data FooE = FooE deriving (Show, C.Typeable)
+-- data BarE = BarE deriving (Show, C.Typeable)
+-- data BazE = BazE deriving (Show, C.Typeable)
+-- instance C.Exception FooE
+-- instance C.Exception BarE
+-- instance C.Exception BazE
+-- :}
+--
+-- >>> :{
+-- throwFooBar :: (C.ThrowsAll '[FooE, BarE] e) => C.CheckedIO e a
+-- throwFooBar = C.throw FooE *> C.throw BarE
+-- :}
+
+
+-- | Checking 'catch'
+--
+-- >>> :{
+-- compiles :: IO ()
+-- compiles = C.runChecked $ throwFooBar `C.catch` handleFoo `C.catch` handleBar
+--     where
+--     handleFoo (_::FooE) = pure ()
+--     handleBar (_::BarE) = pure ()
+-- :}
+--
+-- >>> :{
+-- wontCompile :: IO ()
+-- wontCompile = C.runChecked $ throwFooBar `C.catch` handleFoo
+--     where
+--     handleFoo (_::FooE) = pure ()
+-- :}
+-- ...
+-- ...prevents the constraint...(C.Throws BarE...
+-- ...
+--
+-- >>> :{
+-- wontCompile :: IO ()
+-- wontCompile = C.runChecked $ throwFooBar `C.catch` handleBar
+--     where
+--     handleBar (_::BarE) = pure ()
+-- :}
+-- ...
+-- ...prevents the constraint...(C.Throws FooE...
+-- ...
+--
+-- >>> :{
+-- compilesUnsafely :: IO ()
+-- compilesUnsafely = C.unsafeRunChecked $ C.throw FooE `C.catch` handleBar
+--     where
+--     handleBar (_::BarE) = pure ()
+-- :}
+--
+-- >>> compilesUnsafely
+-- ...Exception: FooE
+catch :: a
+catch = undefined
+
+
+-- | Using 'catches'/'finally' DSL
+--
+-- >>> :{
+-- compiles :: C.Throws FooE l => C.CheckedIO l a
+-- compiles = (C.throw FooE *> C.throw BarE)
+--         `C.catch` (\(_::BarE) -> C.throw FooE)
+-- :}
+--
+-- >>> :{
+-- compiles :: C.Throws FooE l => C.CheckedIO l a
+-- compiles = (C.throw FooE *> C.throw BarE)
+--         `C.catches` (C.handler $ \(_::BarE) -> C.throw FooE)
+-- :}
+--
+-- >>> :{
+-- compiles :: C.Throws FooE l => C.CheckedIO l a
+-- compiles = (C.throw FooE *> C.throw BarE)
+--         `C.catches` (\(_::BarE) -> C.throw FooE)
+--               C.<:> C.emptyHandler
+-- :}
+--
+-- >>> :{
+-- compiles :: C.ThrowsAll '[FooE, BazE] l => C.CheckedIO l a
+-- compiles = (C.throw FooE *> C.throw BarE)
+--         `C.catches` (\(_::BarE) -> C.throw FooE)
+--              C.<::> (\(_::FooE) -> C.throw BazE)
+-- :}
+--
+-- >>> :{
+-- compiles :: C.Throws FooE l => C.CheckedIO l String
+-- compiles = (C.throw FooE *> C.throw BarE)
+--         `C.catches` (\(_::BarE) -> C.throw FooE)
+--              C.<::> (\(_::FooE) -> C.throw BazE)
+--         `C.catch`   (\(_::BazE) -> pure "handledBaz")
+-- :}
+--
+-- >>> :{
+-- compiles :: C.CheckedIO l String
+-- compiles = (C.throw FooE *> C.throw BarE)
+--         `C.catches` (\(_::BarE) -> C.throw FooE)
+--              C.<::> (\(_::FooE) -> C.throw BazE)
+--         `C.catches` (\(_::BazE) -> pure "handledBaz")
+--              C.<::> (\(_::FooE) -> pure "handledFoo")
+-- :}
+--
+-- >>> :{
+-- compiles :: C.CheckedIO l ()
+-- compiles = (C.throw FooE *> C.throw BarE)
+--         `C.catches` (\(_::BarE) -> C.throw FooE)
+--              C.<::> (\(_::FooE) -> C.throw BazE)
+--         `C.catches` (\(_::BazE) -> C.throwsNone $ print "handledBaz")
+--              C.<::> (\(_::FooE) -> C.throwsNone $ print "handledFoo")
+--         `C.finally` (C.throwsNone $ print "finalAction")
+-- :}
+--
+-- >>> C.runChecked compiles
+-- "handledBaz"
+-- "finalAction"
+--
+catchesDsl :: a
+catchesDsl = undefined

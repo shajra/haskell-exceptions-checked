@@ -1,0 +1,32 @@
+#!/bin/sh -eu
+
+
+PROJECT_ROOT="$(dirname "$0")/.."
+
+
+main()
+{
+    for v in 844 843 822 802
+    do
+        printf "\\n\\n"
+        echo "BUILDING: NIX: ghc$v"
+        echo "---------------------"
+        printf "\\n"
+        nix-build --no-out-link --argstr ghcVersion "ghc$v" "$PROJECT_ROOT"
+    done
+    for r in 12.17 12.14 11.22 9.21
+    do
+        printf "\\n\\n"
+        echo "BUILDING: STACK: lts-$r"
+        echo "--------------------------"
+        printf "\\n"
+        nix run --file "$PROJECT_ROOT" nixpkgs.stack --command \
+            stack --resolver "lts-$r" \
+                --stack-yaml "$PROJECT_ROOT/stack.yaml" \
+                test \
+                --flag exceptions-checked:strict
+    done
+}
+
+
+main "$@"

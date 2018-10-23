@@ -1,10 +1,29 @@
+cabal-version: 1.24.2.0
 name: exceptions-checked
 version: 0.0.1
-synopsis: Safe, type-level accounting of exceptions
+synopsis: Safe and Type-level Exception Tracking
 description:
-    Safe, type-level accounting of synchronous exceptions.  Adapts the approach
-    of Pepe Iborra's control-monad-exception package to use the safe-exceptions
-    package.
+    This package provides an API to statically check exceptions at the
+    type-level. Think of it like checked exceptions in Java, but with better
+    ergonomics. People sometimes claim that checked exceptions are a failed
+    experiment. This module is an attempt to prove the contrary.
+    .
+    Though there are enough differences to warrant a separate package, this
+    work is heavily derived from Pepe Iborra's
+    <https://hackage.haskell.org/package/control-monad-exception control-monad-exception>
+    package and supporting paper
+    <https://dl.acm.org/citation.cfm?id=2127644 Explicitly typed exceptions for Haskell>.
+    .
+    Some features include:
+    .
+        * delegation of exception handling to the
+          <https://hackage.haskell.org/package/safe-exceptions safe-exceptions>
+          library (instead of 'Control.Exception') for improved handling of
+          synchronous versus asynchronous exceptions.
+    .
+        * an ergonomic API including not just a basic 'throw' and 'catch', but
+          handling functions such as 'catches', 'finally', 'bracket', and
+          'onException'.
 category: Control
 stability: Unspecified
 homepage: https://github.com/shajra/exceptions-checked#readme
@@ -14,34 +33,64 @@ maintainer: Sukant Hajra <rrudbskr5g@snkmail.com>
 copyright: (c) 2018 Sukant Hajra
 license: BSD3
 license-file: LICENSE
-build-type: Simple
-cabal-version: >= 1.10
-tested-with: GHC == 8.4.3
+extra-doc-files: README.md
+build-type: Custom
+tested-with: GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.3
 
 source-repository head
     type: git
     location: https://github.com/shajra/exceptions-checked
 
+flag strict
+    default: False
+    manual: True
+
+custom-setup
+    setup-depends:
+        base
+      , Cabal
+      , cabal-doctest
+
 library
     hs-source-dirs: src
-    ghc-options: -Wall -Werror
     build-depends:
-        base
-      , safe-exceptions
-      , mtl
+        base             >= 4.9.1.0 && < 4.12
+      , deepseq          >= 1.4.2.0 && < 1.5
+      , exceptions       >= 0.8.3   && < 0.11
+      , mtl              >= 2.2.1   && < 2.3
+      , mmorph           >= 1.0.9   && < 1.2
+      , safe-exceptions  >= 0.1.6.0 && < 0.2
     exposed-modules:
         Control.Exception.Checked
     default-language: Haskell2010
+    ghc-options:
+        -Wall
+        -Wincomplete-uni-patterns
+        -Wincomplete-record-updates
+    if flag(strict)
+        ghc-options: -Werror
 
-test-suite specs
+test-suite doctests
+    x-doctest-components: test:doctests
+    x-doctest-source-dirs: test
+    x-doctest-modules:
+        Doctest.Checked.Catch
+        Doctest.Checked.Throw
     type: exitcode-stdio-1.0
-    main-is: Main.hs
+    main-is: doctests.hs
     hs-source-dirs: test
-    other-modules: Specs.Checked
-    ghc-options: -Wall
+    other-modules:
+        Doctest.Checked.Catch
+        Doctest.Checked.Throw
     build-depends:
         base
+      , doctest
       , exceptions-checked
-      , hspec
-      , should-not-typecheck
+    ghc-options:
+        -Wall
+        -Wincomplete-uni-patterns
+        -Wincomplete-record-updates
+        -threaded
+    if flag(strict)
+        ghc-options: -Werror
     default-language: Haskell2010

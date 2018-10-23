@@ -1,0 +1,175 @@
+module Doctest.Checked.Throw where
+
+
+-- $setup
+-- >>> :set -XTypeApplications
+-- >>> :set -XFlexibleContexts
+-- >>> :set -XDataKinds
+--
+-- >>> import qualified Control.Exception.Checked as C
+--
+-- >>> :{
+-- data FooE = FooE deriving (Show, C.Typeable)
+-- data BarE = BarE deriving (Show, C.Typeable)
+-- data BazE = BazE deriving (Show, C.Typeable)
+-- instance C.Exception FooE
+-- instance C.Exception BarE
+-- instance C.Exception BazE
+-- :}
+
+
+-- | Checking 'throws'.
+--
+-- Infers a type we'd expect:
+--
+-- >>> :type C.throws @FooE $ pure ()
+-- ...
+-- ... :: ...C.Throws FooE e... => C.Checked e m ()
+-- ...
+--
+-- 'throws' can't emulate 'throwsNone'
+--
+-- >>> :{
+-- wontCompile :: IO ()
+-- wontCompile = C.runChecked . C.throws $ pure ()
+-- :}
+-- ...
+-- ...Ambiguous type variable...exception...
+-- ...
+--
+-- The API forces us to explicitly declare thrown exceptions:
+--
+-- >>> :{
+-- wontCompile :: C.Throws FooE e => C.CheckedIO e ()
+-- wontCompile = C.throws $ pure ()
+-- :}
+-- ...
+-- ... Could not deduce...
+-- ...
+--
+-- Explicitly declared exceptions force a 'Throws' constraint:
+--
+-- >>> :{
+-- wontCompile :: C.CheckedIO e ()
+-- wontCompile = C.throws @FooE $ pure ()
+-- :}
+-- ...
+-- ... No instance for (C.Throws FooE e)
+-- ...
+--
+throws :: a
+throws = undefined
+
+-- | Checking 'throwsNone'.
+--
+-- Normal usage:
+--
+-- >>> :{
+-- compiles :: C.CheckedIO e ()
+-- compiles = C.throwsNone $ pure ()
+-- :}
+--
+-- It's logically fair to widen a 'throwsNone' call with a constraint declaring
+-- an exception thrown (but it would be better to use 'throws' or 'throwsAll'
+-- for clarity):
+--
+-- >>> :{
+-- compiles :: C.Throws FooE e => C.CheckedIO e ()
+-- compiles = C.throwsNone $ pure ()
+-- :}
+--
+throwsNone :: a
+throwsNone = undefined
+
+-- | Checking 'throwsAll'
+--
+-- Normal usage:
+--
+-- >>> :{
+-- compiles :: C.ThrowsAll '[FooE, BarE] e => C.CheckedIO e ()
+-- compiles = C.throwsAll @'[FooE, BarE] $ pure ()
+-- :}
+--
+-- >>> :{
+-- compiles :: C.Throws FooE e => C.CheckedIO e ()
+-- compiles = C.throwsAll @'[FooE] $ pure ()
+-- :}
+--
+-- Type application forces a constraint:
+--
+-- >>> :{
+-- wontCompile :: C.CheckedIO e ()
+-- wontCompile = C.throwsAll @'[FooE] $ pure ()
+-- :}
+-- ...
+-- ... No instance for (C.Throws FooE e)
+-- ...
+--
+-- 'throwsAll' can emulate 'throwsNone'
+--
+-- >>> :{
+-- compiles :: IO ()
+-- compiles = C.runChecked . C.throwsAll @'[] $ pure ()
+-- :}
+--
+-- Constraint order doesn't matter with 'ThrowsAll':
+--
+-- >>> :{
+-- compiles :: C.ThrowsAll '[BarE, FooE] e => C.CheckedIO e ()
+-- compiles = C.throwsAll @'[FooE, BarE] $ pure ()
+-- :}
+--
+-- 'ThrowsAll' is optional, and 'Throws' can be used:
+--
+-- >>> :{
+-- compiles :: (C.Throws FooE e, C.Throws BarE e) => C.CheckedIO e ()
+-- compiles = C.throwsAll @'[FooE, BarE] $ pure ()
+-- :}
+--
+-- Constraint order doesn't matter with 'Throws':
+--
+-- >>> :{
+-- compiles :: (C.Throws FooE e, C.Throws BarE e) => C.CheckedIO e ()
+-- compiles = C.throwsAll @'[BarE, FooE] $ pure ()
+-- :}
+--
+-- Constraints can't be inferred without a type application:
+--
+-- >>> :{
+-- wontCompile :: C.Throws FooE e => C.CheckedIO e ()
+-- wontCompile = C.throwsAll $ pure ()
+-- :}
+-- ...
+-- ... Could not deduce...
+-- ...
+--
+-- The type application is required even if no constraint to infer:
+--
+-- >>> :{
+-- wontCompile :: C.CheckedIO e ()
+-- wontCompile = C.throwsAll $ pure ()
+-- :}
+-- ...
+-- ... Could not deduce...
+-- ...
+--
+throwsAll :: a
+throwsAll = undefined
+
+-- | Throwing real exceptions
+--
+-- >>> :{
+-- compiles :: (C.ThrowsAll '[FooE, BarE] e) => C.CheckedIO e ()
+-- compiles = C.throw FooE *> C.throw BarE
+-- :}
+--
+-- >>> :{
+-- wontCompile :: (C.ThrowsAll '[FooE, BazE] e) => C.CheckedIO e ()
+-- wontCompile = C.throw BarE *> C.throw FooE
+-- :}
+-- ...
+-- ...Could not deduce (C.Throws BarE e)
+-- ...
+--
+throw :: a
+throw = undefined

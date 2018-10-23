@@ -2,7 +2,8 @@
 #
 # See https://docs.haskellstack.org/en/stable/yaml_configuration/
 
-resolver: lts-12.13
+resolver: lts-12.16
+#resolver: lts-12.14
 #resolver: lts-11.22
 #resolver: lts-9.21
 
@@ -13,7 +14,6 @@ nix:
     enable: true
     pure: true
     packages: []
-    #shell-file: stack/stack.nix
 
 flags: {}
 extra-package-dbs: []

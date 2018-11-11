@@ -14,7 +14,7 @@
 
 
 {-|
-Description: Type-level checked exceptions
+Description: Statically checked exceptions
 
 This module provides an API to statically check exceptions. The design is
 heavily derived from Pepe Iborra's
@@ -120,11 +120,13 @@ other exposed functions in this module to figure out the rest.
 
 With 'Checked' we can statically check exceptions, but that's still a long way
 from bridging that gap to totality. The provided 'Checked' type is only useful
-with base monadic types with instances of 'MonadCatch' or 'MonadMask'. Note
-this excludes 'Identity', which means to statically check the kinds of
-exceptions we get with partial function (which Michael Snoyman has
+with base monadic types with instances of 'Safe.MonadCatch' or
+'Safe.MonadMask'. Note this excludes 'Data.Functor.Identity', which means to
+statically check the kinds of exceptions we get with partial function (which
+Michael Snoyman has
 <https://www.fpcomplete.com/blog/2018/04/async-exception-handling-haskell coined as “impure”>),
-we must lift these computations into something like 'IO' or 'STM'.
+we must lift these computations into something like 'IO' or
+'Control.Monad.STM'.
 -}
 module Control.Exception.Checked (
     -- * Types and Type Classes
@@ -521,8 +523,8 @@ throwTo = (fmap. fmap) Checked Safe.throwTo
 -- Note, this delegates to @safe-exception@'s 'Safe.throwString'.
 --
 -- Also, semantically, it's far better to make custom exception types. When
--- everything thrown is a 'StringException', we can't handle/catch anything
--- with any delicacy.
+-- everything thrown is a 'Safe.StringException', we can't handle/catch
+-- anything with any delicacy.
 throwString
     :: (Throws Safe.StringException e, Safe.MonadThrow m)
     => String -> Checked e m a
@@ -822,7 +824,7 @@ handler f = Handler [Safe.Handler $ runChecked . f]
 emptyHandler :: Handler m a '[] e
 emptyHandler = Handler []
 
--- | Appends two 'Handers'.
+-- | Appends two 'Handler's.
 appendHandler
     :: Handler m a handled e
     -> Handler m a handled' e

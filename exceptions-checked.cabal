@@ -1,7 +1,7 @@
 cabal-version: 1.24.2.0
 name: exceptions-checked
 version: 0.0.1
-synopsis: Safe and Type-level Exception Tracking
+synopsis: Statically Checked Exceptions
 description:
     This package provides an API to statically check exceptions at the
     type-level. Think of it like checked exceptions in Java, but with better

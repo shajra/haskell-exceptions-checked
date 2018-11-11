@@ -1,8 +1,7 @@
-# exceptions-checked: Safe and Type-level Exception Tracking
+# exceptions-checked: Statically Checked Exceptions
 
--[![Master Branch Build Status](https://img.shields.io/travis/shajra/exceptions-checked/master.svg?label=master)](https://travis-ci.org/shajra/exceptions-checked)
--[![Dev Branch Build Status](https://img.shields.io/travis/shajra/exceptions-checked/dev.svg?label=dev)](https://travis-ci.org/shajra/exceptions-checked)
-
+[![Release Branch Build Status](https://img.shields.io/travis/shajra/exceptions-checked/release.svg?label=release)](https://travis-ci.org/shajra/exceptions-checked)
+[![Candidate Branch Build Status](https://img.shields.io/travis/shajra/exceptions-checked/candidate.svg?label=candidate)](https://travis-ci.org/shajra/exceptions-checked)
 
 This package provides an API to statically check exceptions at the type-level.
 Think of it like checked exceptions in Java, but with better ergonomics. People
@@ -32,7 +31,7 @@ types like `IO` that threaten to throw a myriad of exceptions? With types like
 exhaustively covered all cases with our pattern matching. But this can lead to
 at least two problems:
 
-* a split world view of errors as plain values versus exceptions in IO
+* a split world view of errors as plain values versus exceptions in `IO`
 
 * non-extensible error types.
 
@@ -41,7 +40,7 @@ at least two problems:
 To deal with the composition of `Either` and `IO`, people commonly use
 `ExceptT` or `MonadError`, but now we have to think about handling errors
 through two APIs: `Control.Exception` and `Control.Monad.Except`. Migrating
-from thrown exceptions in `IO` to “error” data types in `Either` or `ExceptT`,
+from thrown exceptions in `IO` to “error” data types in `Either` or `ExceptT`
 can feel tedious.
 
 Also, if we want to implement things like `onFailure`. Do we want to call our
@@ -95,16 +94,16 @@ the underlying base (often `IO`). If we want to call things like `finally` or
 `onException`, we have to use the `Lift` effect, which provides `MonadBase`,
 `MonadBaseControl`, and `MonadIO` instances.
 
-## Solving both problems at once
+## Our solution
 
 Pepe Iborra's [control-monad-exception][control-monad-exception] package seems
 to address the “split-world” problem, while also providing extensible errors.
-With it, we can leave our exceptions within IO, and just annotate which
+With it, we can leave our exceptions within `IO`, and just annotate which
 exceptions have been thrown and caught with a `Throws` constraint.
 
 `control-monad-exception` wraps our computation with a `Checked` data type.
 Some have [tried to avoid this wrapping][safe-exceptions-checked], but seem to
-[run into issues][safe-exceptions-checked-issues] with less type inference,
+[run into issues][safe-exceptions-checked-issue] with less type inference,
 limitations of the API, and possible idiosyncrasies with `forkIO`.
 
 For that reason, in this package we stick with the basic approach of
@@ -112,7 +111,54 @@ For that reason, in this package we stick with the basic approach of
 and also choose to delegate exception management calls to the `safe-exception`
 package rather than `base`'s `Control.Exception`.
 
+## Using the library candidates
 
+This library is not yet officially released on Hackage, though
+[candidates are being published to Hackage][exceptions-checked-candidates].
+
+Candidates in Hackage are not completely implemented, and there's not yet a
+standard workflow for them.  For now, we're just using them as a sanity check
+of the upload and to review documentation.   That said, we republish candidates
+under the same version number, which mutates them.
+
+Tags on GitHub won't change, and we won't force-push on either the “candidate”
+or “release” branch (though “user/\*” have no such guarantees).  So we
+recommend you get candidates directly from GitHub.  This can be done with both
+Cabal and Stack.
+
+### Pulling in candidates with Cabal
+
+If you're using a recent release of Cabal, you can put a
+`source-repository-package` stanza in your `cabal.project` file.
+
+Tags of candidates can be found on GitHub.  For instance, to use the
+“candidate/0.0.1-rc1” candidate, you can include the following in
+`cabal.project`:
+
+```
+source-repository-package
+    type: git
+    location: https://github.com/shajra/exceptions-checked
+    tag: candidate/0.0.1-rc1
+```
+
+You can then use the `exceptions-checked` package in your Cabal file as usual.
+
+### Pulling in candidates with Stack
+
+Alternatively for Stack, to use the “candidate/0.0.1-rc1” candidate, you can
+put the following in your `stack.yaml` file:
+
+```yaml
+extra-deps:
+- github: shajra/exceptions-checked
+  commit: candidate/0.0.1-rc1
+```
+
+You can then use the `exceptions-checked` package in your Cabal file as usual.
+
+
+[exceptions-checked-candidates]: https://hackage.haskell.org/package/exception-checked/candidates/
 [control-monad-exception]: https://hackage.haskell.org/package/control-monad-exception
 [control-monad-exception-paper]: https://dl.acm.org/citation.cfm?id=2127644
 [extensible-effects]: https://hackage.haskell.org/package/extensible-effects

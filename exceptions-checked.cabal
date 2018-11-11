@@ -33,7 +33,9 @@ maintainer: Sukant Hajra <rrudbskr5g@snkmail.com>
 copyright: (c) 2018 Sukant Hajra
 license: BSD3
 license-file: LICENSE
-extra-doc-files: README.md
+extra-doc-files:
+    README.md
+    CHANGELOG.md
 build-type: Custom
 tested-with: GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.3
 

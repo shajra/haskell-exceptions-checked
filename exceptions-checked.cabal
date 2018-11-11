@@ -54,7 +54,7 @@ custom-setup
 library
     hs-source-dirs: src
     build-depends:
-        base             >= 4.9.1.0 && < 4.12
+        base             >= 4.9.1.0 && < 4.13
       , deepseq          >= 1.4.2.0 && < 1.5
       , exceptions       >= 0.8.3   && < 0.11
       , mtl              >= 2.2.1   && < 2.3

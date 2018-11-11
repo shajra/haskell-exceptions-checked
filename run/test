@@ -6,7 +6,7 @@ PROJECT_ROOT="$(dirname "$0")/.."
 
 main()
 {
-    for v in 844 843 822 802
+    for v in 861 844 843 822 802
     do
         printf "\\n\\n"
         echo "BUILDING: NIX: ghc$v"

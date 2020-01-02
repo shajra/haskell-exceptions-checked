@@ -1,9 +1,6 @@
-let config = import ./config.nix; in
-
-args@{ ghcVersion ? config.ghc.default }:
-
-(import ./default.nix args).env.haskell.withEnvTools (pkgs:
-    if ghcVersion == "ghc861"
-    then []
-    else [ pkgs.haskellPackages.haskell-ci ]
-)
+let build = import ./nix;
+in build.pkgSet.shellFor {
+    buildInputs = with build.hn.bootstrap.packages;
+     [ alex happy cabal-install build.hn.nix-tools 
+     ] ++ build.pkgSet.exceptions-checked.setup.buildInputs;
+}

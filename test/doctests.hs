@@ -1,14 +1,23 @@
 module Main where
 
 
-import           Build_doctests (flags, module_sources, pkgs)
-import           Data.Foldable  (traverse_)
-import           Test.DocTest   (doctest)
+import qualified Build_doctests as B
+import Control.Monad (join)
+import Data.Foldable (traverse_)
+import System.Environment.Compat (unsetEnv)
+import Test.DocTest (doctest)
 
 
 main :: IO ()
 main = do
+    -- 1
     traverse_ putStrLn args
+    unsetEnv "GHC_ENVIRONMENT"
     doctest args
+    
   where
-    args = flags ++ pkgs ++ module_sources -- ["Control.Exception.Checked"]
+    args = join 
+        [ B.flags
+        , B.pkgs
+        , B.module_sources
+        ]

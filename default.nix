@@ -1,6 +1,9 @@
-let build = import ./nix/default.nix;
+let config = import ./config; in
+
+args@{ ghcVersion ? config.ghc.version }:
+
+let build = import ./nix/default.nix args;
 in {
     all  = build.pkgSet.exceptions-checked.components.all;
-    test = build.hn.haskellLib.check 
-        build.pkgSet.exceptions-checked.components.tests.doctests;
+    checks = build.pkgSet.exceptions-checked.checks;
 }

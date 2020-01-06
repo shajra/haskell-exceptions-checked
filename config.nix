@@ -1,7 +1,9 @@
 {
-    ghc.default = "ghc865";
-    example-nix.rev = "7d01def31eca58a93195f3083145e09dc7ec5a8f";
-    example-nix.sha256 = "15m1plc0s222c3pva1c9pij75gs26glagpb94i6dvsmqv2ynmmgh";
-    nixpkgs.rev = "d85e435b7bded2596d7b201bcd938c94d8a921c1";
-    nixpkgs.sha256 = "1msjm4kx1z73v444i1iybvmc7z0kfkbn9nzr21rn5yc4ql1jwf99";
+    ghc.version = "ghc865";
+    nixpkgs-pin = "release-19.03";
+    index-state  = "2020-01-01T00:00:00Z";
+    index-sha256 = "00yycmqrncbpqpahvnvj0frgxl2dhsjyyh4bcclyzsalqmgspdhx";
+    plan-sha256  = "1lfw3mf6cw1b5d95bxznkg51rbdgqd8r0fq87km3ydl6qy5wslph";
+    isMaterialized = false;
+    checkMaterialization = true;
 }

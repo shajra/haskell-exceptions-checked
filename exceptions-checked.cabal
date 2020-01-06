@@ -1,4 +1,4 @@
-cabal-version: 2.2
+cabal-version: 1.18
 name: exceptions-checked
 version: 0.0.1
 synopsis: Statically Checked Exceptions
@@ -31,7 +31,7 @@ bug-reports: https://github.com/shajra/exceptions-checked/issues
 author: Sukant Hajra, Pepe Iborra
 maintainer: Sukant Hajra <rrudbskr5g@snkmail.com>
 copyright: (c) 2018 Sukant Hajra
-license: BSD-3-Clause
+license: BSD3
 license-file: LICENSE
 extra-doc-files:
     README.md
@@ -50,9 +50,6 @@ flag strict
 custom-setup
     setup-depends:
         base
-      , directory
-      , filepath
-      , Cabal
       , cabal-doctest
 
 library
@@ -64,7 +61,6 @@ library
       , mtl              >= 2.2.1   && < 2.3
       , mmorph           >= 1.0.9   && < 1.2
       , safe-exceptions  >= 0.1.6.0 && < 0.2
-    build-tool-depends: alex:alex, happy:happy
     exposed-modules:
         Control.Exception.Checked
     default-language: Haskell2010

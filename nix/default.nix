@@ -1,9 +1,13 @@
-let 
+let config = import ../config.nix; in
 
-    index-state  = "2020-01-01T00:00:00Z";
-    index-sha256 = "00yycmqrncbpqpahvnvj0frgxl2dhsjyyh4bcclyzsalqmgspdhx";
-    plan-sha256  = "1lfw3mf6cw1b5d95bxznkg51rbdgqd8r0fq87km3ydl6qy5wslph";
-    checkMaterialization = false && ! pkgs.lib.inNixShell;
+{ ghcVersion ? config.ghc.version }:
+
+let
+
+    inherit (config) index-state index-sha256 plan-sha256 isMaterialized;
+
+    checkMaterialization = config.checkMaterialization
+        && isMaterialized && ! pkgs.lib.inNixShell;
 
     srcs = import ./sources.nix;
 
@@ -11,17 +15,17 @@ let
 
     pinnedNixpkgsSrc = "${hnSrc}/nixpkgs";
 
-    hnArgsOrig = import hnSrc;
+    nixpkgsArgsOrig = import hnSrc;
 
-    hnArgs = hnArgsOrig // { 
-        nixpkgs-pin = "release-19.03"; 
+    nixpkgsArgs = nixpkgsArgsOrig // {
+        inherit (config) nixpkgs-pin;
     };
 
-    pkgs = import pinnedNixpkgsSrc hnArgs;
+    pkgs = import pinnedNixpkgsSrc nixpkgsArgs;
 
-    hn = (import pinnedNixpkgsSrc hnArgs).haskell-nix;
+    hn = pkgs.haskell-nix;
 
-    modifiedSrc = src: pkgs.runCommand "exceptions-checked-src" {} '' 
+    modifiedSrc = src: pkgs.runCommand "exceptions-checked-src" {} ''
         cp -r "${hn.cleanSourceHaskell { inherit src; }}" "$out"
         chmod -R +w "$out"
         cp -r "${srcs.cabal-doctest}" "$out/cabal-doctest"
@@ -37,17 +41,21 @@ let
     pkgSet = hn.cabalProject {
         name = "exceptions-checked";
         src = if pkgs.lib.inNixShell then ../. else modifiedSrc ../.;
-        inherit index-state index-sha256 plan-sha256 checkMaterialization;
-        ${if pkgs.lib.inNixShell then null else "materialized"} = ./materialized;
-        modules = [({config, ...}: { 
-            reinstallableLibGhc = true; 
+        ghc = hn.compiler.${ghcVersion};
+	inherit index-state index-sha256 plan-sha256
+            checkMaterialization;
+        ${if isMaterialized then null else "materialized"} = ./materialized;
+        modules = [({...}: {
+            doHaddock = true;
             packages.exceptions-checked.components.tests.doctests = {
                 extraSrcFiles = [ "test" ];
                 preCheck = ''
                     ghc-pkg init dist/package.conf.inplace
                 '';
             };
-            doHaddock = true;
+            packages.ghc.flags.ghci = pkgs.lib.mkForce true;
+            packages.ghci.flags.ghci = pkgs.lib.mkForce true;
+            reinstallableLibGhc = true;
         })];
     };
 

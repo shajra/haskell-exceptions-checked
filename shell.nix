@@ -1,6 +1,15 @@
-let build = import ./nix;
-in build.pkgSet.shellFor {
-    buildInputs = with build.hn.bootstrap.packages;
-     [ alex happy cabal-install build.hn.nix-tools 
-     ] ++ build.pkgSet.exceptions-checked.setup.buildInputs;
-}
+let build = import ./nix {};
+in (build.pkgSet.shellFor {
+    exactDeps = false;
+    buildInputs = [
+        build.hn.bootstrap.packages.cabal-install
+        build.hn.nix-tools
+     ];
+}).overrideAttrs(old: {
+    shellHook = ''
+        export DOCTEST_PKG_DB="$(
+            find "$(readlink -f "$(dirname "$(command -v ghc)")"/..)" \
+                -name package.conf.d
+        )"
+    '';
+})
